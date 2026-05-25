@@ -4,6 +4,8 @@
 
 **→ https://daamable-sknk.github.io/link-gallery/**
 
+![last updated](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fraw.githubusercontent.com%2Fdaamable-sknk%2Flink-gallery%2Fmain%2Fsrc%2Fdata%2Fmeta.json&query=lastUpdated&label=last%20updated&color=blue)
+
 ---
 
 ## 왜 만들었나
