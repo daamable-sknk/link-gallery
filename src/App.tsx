@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import links from "./data/links.json";
+import meta from "./data/meta.json";
 
 type Link = {
   url: string;
@@ -131,8 +132,9 @@ export default function App() {
           <div>
             <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>링크 보관함</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
-              카카오톡 나와의 채팅에서 수집한 링크 모음 · {ALL.length}개
-            </p>
+          카카오톡 나와의 채팅에서 수집한 링크 모음 · {ALL.length}개
+          <span style={{ marginLeft: 10, opacity: 0.6 }}>· 마지막 업데이트 {meta.lastUpdated} UTC</span>
+        </p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 2 }}>
             <a
