@@ -1,5 +1,7 @@
 # 동작 원리 상세
 
+> 데이터 수집 파이프라인은 [k-skill](https://github.com/NomaDamas/k-skill)(`kakaotalk-mac` 스킬)과 [kakaocli](https://github.com/silver-flight-group/kakaocli)를 기반으로 한다. 특히 카카오톡 DB 암호화 키 계산 알고리즘은 k-skill의 `kakaotalk_mac.py` 헬퍼에서 가져왔다.
+
 ## 카카오톡 DB 복호화
 
 카카오톡 Mac은 메시지를 SQLCipher로 암호화된 SQLite 파일에 저장한다. 파일명도 평문이 아니라 사용자 정보로 유도된 hex 문자열이다.
