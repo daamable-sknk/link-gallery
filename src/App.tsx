@@ -158,7 +158,7 @@ export default function App() {
               장대환
             </a>
             <a
-              href="https://github.com/daamable-sknk"
+              href="https://github.com/daamable-sknk/link-gallery"
               target="_blank"
               rel="noopener noreferrer"
               style={{
