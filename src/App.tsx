@@ -22,6 +22,30 @@ function domainShort(d: string) {
   return d.replace(/^www\./, "");
 }
 
+function formatKstLastUpdated(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})[ T](\d{2}):(\d{2})$/);
+  if (!match) return value;
+
+  const [, year, month, day, hour, minute] = match;
+  const date = new Date(Date.UTC(
+    Number(year),
+    Number(month) - 1,
+    Number(day),
+    Number(hour),
+    Number(minute),
+  ));
+
+  return new Intl.DateTimeFormat("ko-KR", {
+    timeZone: "Asia/Seoul",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(date);
+}
+
 function FaviconImg({ domain }: { domain: string }) {
   return (
     <img
@@ -111,18 +135,16 @@ export default function App() {
 
   const categories = CATEGORY_ORDER.filter((c) => catCounts[c] > 0);
 
-  const filtered = useMemo(() => {
-    const q = search.toLowerCase().trim();
-    return ALL.filter((item) => {
-      const matchCat = activeCategory === "전체" || item.category === activeCategory;
-      const matchSearch = !q ||
-        item.title.toLowerCase().includes(q) ||
-        item.description.toLowerCase().includes(q) ||
-        item.domain.toLowerCase().includes(q) ||
-        item.url.toLowerCase().includes(q);
-      return matchCat && matchSearch;
-    });
-  }, [search, activeCategory]);
+  const q = search.toLowerCase().trim();
+  const filtered = ALL.filter((item) => {
+    const matchCat = activeCategory === "전체" || item.category === activeCategory;
+    const matchSearch = !q ||
+      item.title.toLowerCase().includes(q) ||
+      item.description.toLowerCase().includes(q) ||
+      item.domain.toLowerCase().includes(q) ||
+      item.url.toLowerCase().includes(q);
+    return matchCat && matchSearch;
+  });
 
   return (
     <div style={{ maxWidth: 1100, margin: "0 auto", padding: "32px 20px" }}>
@@ -133,7 +155,7 @@ export default function App() {
             <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 4 }}>링크 보관함</h1>
             <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>
           카카오톡 나와의 채팅에서 수집한 링크 모음 · {ALL.length}개
-          <span style={{ marginLeft: 10, opacity: 0.6 }}>· 마지막 업데이트 {meta.lastUpdated} UTC</span>
+          <span style={{ marginLeft: 10, opacity: 0.6 }}>· 마지막 업데이트 {formatKstLastUpdated(meta.lastUpdated)} 한국시간</span>
         </p>
           </div>
           <div style={{ display: "flex", gap: 8, alignItems: "center", paddingTop: 2 }}>
