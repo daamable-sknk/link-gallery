@@ -1,6 +1,21 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import links from "./data/links.json";
 import meta from "./data/meta.json";
+
+const CHECKED_STORAGE_KEY = "link-gallery-checked";
+
+function loadCheckedUrls(): Set<string> {
+  try {
+    const raw = localStorage.getItem(CHECKED_STORAGE_KEY);
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function saveCheckedUrls(urls: Set<string>) {
+  localStorage.setItem(CHECKED_STORAGE_KEY, JSON.stringify([...urls]));
+}
 
 type Link = {
   url: string;
@@ -59,71 +74,132 @@ function FaviconImg({ domain }: { domain: string }) {
   );
 }
 
-function LinkCard({ item }: { item: Link }) {
+function LinkCard({
+  item,
+  checked,
+  onToggle,
+}: {
+  item: Link;
+  checked: boolean;
+  onToggle: () => void;
+}) {
   return (
-    <a
-      href={item.url}
-      target="_blank"
-      rel="noopener noreferrer"
+    <div
       style={{
-        display: "flex",
-        flexDirection: "column",
-        gap: 8,
-        padding: "14px 16px",
+        position: "relative",
         background: "var(--bg-card)",
-        border: "1px solid var(--border)",
+        border: `1px solid ${checked ? "var(--border)" : "var(--border)"}`,
         borderRadius: "var(--radius)",
-        cursor: "pointer",
-        transition: "border-color 0.15s",
-        minHeight: 90,
-        textDecoration: "none",
-        color: "inherit",
+        opacity: checked ? 0.5 : 1,
+        transition: "opacity 0.15s, border-color 0.15s",
       }}
-      onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--accent)"; }}
-      onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.borderColor = "var(--border)"; }}
     >
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <FaviconImg domain={item.domain} />
-        <span style={{ color: "var(--text-secondary)", fontSize: 12, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-          {domainShort(item.domain)}
-        </span>
-        {item.date && (
-          <span style={{ color: "var(--text-secondary)", fontSize: 12, flexShrink: 0 }}>
-            {item.date}
+      <label
+        title={checked ? "확인 완료 해제" : "확인 완료"}
+        style={{
+          position: "absolute",
+          top: 10,
+          right: 10,
+          zIndex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          width: 28,
+          height: 28,
+          cursor: "pointer",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={checked}
+          onChange={onToggle}
+          aria-label={checked ? "확인 완료 해제" : "확인 완료"}
+          style={{ width: 16, height: 16, cursor: "pointer", accentColor: "var(--accent)" }}
+        />
+      </label>
+
+      <a
+        href={item.url}
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: 8,
+          padding: "14px 40px 14px 16px",
+          cursor: "pointer",
+          minHeight: 90,
+          textDecoration: "none",
+          color: "inherit",
+          borderRadius: "var(--radius)",
+        }}
+        onMouseEnter={(e) => { (e.currentTarget.parentElement as HTMLElement).style.borderColor = "var(--accent)"; }}
+        onMouseLeave={(e) => { (e.currentTarget.parentElement as HTMLElement).style.borderColor = "var(--border)"; }}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+          <FaviconImg domain={item.domain} />
+          <span style={{ color: "var(--text-secondary)", fontSize: 12, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            {domainShort(item.domain)}
           </span>
-        )}
-      </div>
-
-      <div style={{ fontWeight: 500, fontSize: 13, lineHeight: 1.35, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-        {item.title || domainShort(item.domain)}
-      </div>
-
-      {item.description && (
-        <div style={{ color: "var(--text-secondary)", fontSize: 12, lineHeight: 1.45, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
-          {item.description}
+          {item.date && (
+            <span style={{ color: "var(--text-secondary)", fontSize: 12, flexShrink: 0, marginRight: 20 }}>
+              {item.date}
+            </span>
+          )}
         </div>
-      )}
 
-      <div style={{ marginTop: "auto" }}>
-        <span style={{
-          display: "inline-block",
-          padding: "2px 8px",
-          background: "var(--accent-light)",
-          color: "var(--accent)",
-          borderRadius: 20,
-          fontSize: 11,
+        <div style={{
           fontWeight: 500,
+          fontSize: 13,
+          lineHeight: 1.35,
+          overflow: "hidden",
+          display: "-webkit-box",
+          WebkitLineClamp: 2,
+          WebkitBoxOrient: "vertical",
+          textDecoration: checked ? "line-through" : "none",
         }}>
-          {item.category}
-        </span>
-      </div>
-    </a>
+          {item.title || domainShort(item.domain)}
+        </div>
+
+        {item.description && (
+          <div style={{ color: "var(--text-secondary)", fontSize: 12, lineHeight: 1.45, overflow: "hidden", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>
+            {item.description}
+          </div>
+        )}
+
+        <div style={{ marginTop: "auto" }}>
+          <span style={{
+            display: "inline-block",
+            padding: "2px 8px",
+            background: checked ? "var(--border)" : "var(--accent-light)",
+            color: checked ? "var(--text-secondary)" : "var(--accent)",
+            borderRadius: 20,
+            fontSize: 11,
+            fontWeight: 500,
+          }}>
+            {item.category}
+          </span>
+        </div>
+      </a>
+    </div>
   );
 }
 
 export default function App() {
   const [search, setSearch] = useState("");
   const [activeCategory, setActiveCategory] = useState("전체");
+  const [checkedUrls, setCheckedUrls] = useState<Set<string>>(loadCheckedUrls);
+
+  const toggleChecked = useCallback((url: string) => {
+    setCheckedUrls((prev) => {
+      const next = new Set(prev);
+      if (next.has(url)) next.delete(url);
+      else next.add(url);
+      saveCheckedUrls(next);
+      return next;
+    });
+  }, []);
 
   const catCounts = useMemo(() => {
     const counts: Record<string, number> = { "전체": ALL.length };
@@ -280,8 +356,13 @@ export default function App() {
           gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))",
           gap: 10,
         }}>
-          {filtered.map((item, i) => (
-            <LinkCard key={i} item={item} />
+          {filtered.map((item) => (
+            <LinkCard
+              key={item.url}
+              item={item}
+              checked={checkedUrls.has(item.url)}
+              onToggle={() => toggleChecked(item.url)}
+            />
           ))}
         </div>
       ) : (
